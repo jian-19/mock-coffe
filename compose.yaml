@@ -1,0 +1,10 @@
+services:
+  db:
+    image: postgres:16.8-alpine3.20
+    container_name: database
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    volumes:
+      - ./infra/database:/var/lib/postgresql/data
