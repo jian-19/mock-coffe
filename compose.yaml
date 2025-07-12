@@ -1,8 +1,8 @@
 services:
-  db:
+  integrador-database:
     image: postgres:16.8-alpine3.20
-    container_name: database
+    container_name: integrador-database
     ports:
-      - 5432:5432
+      - "5432:5432"
     env_file:
       - .env
