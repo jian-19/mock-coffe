@@ -5,7 +5,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./ui/table"; // Assumo que estes são componentes Shadcn UI
+} from "./ui/table";
 
 export default function CustomTable({ Options, headers, rows }) {
   if (!rows || rows.length === 0) {
@@ -23,8 +23,7 @@ export default function CustomTable({ Options, headers, rows }) {
           {headers.map((header, index) => (
             <TableHead
               key={index}
-              // Mantenha 'text-center' para o cabeçalho "Ações"
-              // Ou adicione 'flex justify-center' se preferir consistência
+
               className={header === "Ações" ? "text-center" : ""}
             >
               {header}
@@ -35,13 +34,13 @@ export default function CustomTable({ Options, headers, rows }) {
       <TableBody>
         {rows.map((row) => (
           <TableRow key={row.id}>
-            {/* Células de dados */}
+            {}
             <TableCell>{row.Nome}</TableCell>
             <TableCell>{row.Descrição}</TableCell>
             <TableCell>{row.Preço}</TableCell>
 
-            {/* Célula para a coluna de Ações */}
-            {/* MUDANÇA AQUI: Adicione 'flex justify-center items-center' */}
+            {}
+            {}
             <TableCell className="flex justify-center items-center">
               {Options && <Options rowData={row} />}
             </TableCell>
