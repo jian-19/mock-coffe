@@ -9,7 +9,7 @@ function DocsPage() {
 
   useEffect(() => {
     async function fetchSpec() {
-      const response = await fetch("/api/swagger"); // Rota da sua especificação
+      const response = await fetch("/api/swagger"); 
       const data = await response.json();
       setSpec(data);
     }
