@@ -1,6 +1,6 @@
-"use client"; 
+"use client";
 
-import { useState, useEffect } from "react"; 
+import { useState, useEffect } from "react";
 import CustomTable from "@/components/Table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; 
@@ -15,59 +15,98 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Check, MoreVertical, X, Trash2 } from "lucide-react";
-import useSWR from "swr"; 
-import { fetcher } from "@/lib/utils"; 
+import { Check, MoreVertical, X, Trash2, Plus, Home } from "lucide-react"; 
+import useSWR from "swr";
+import { fetcher } from "@/lib/utils";
+import Link from 'next/link'; 
+
+import AddItemForm from "@/components/ui/addItemForm";
 
 
-const headers = ["Nome", "Descrição", "Preço", "Ações"]; 
+const headers = ["Nome", "Tipo", "Preço", "Ações"]; 
 
 
-export default function Home() {
-
-  const { isLoading, data, mutate } = useSWR("/api/mock/snacks", fetcher);
-
+export default function HotDrinksPage() { 
+  const { isLoading, data, mutate } = useSWR("/api/mock/hot_drinks", fetcher); 
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const handleUpdateSuccess = () => {
-    mutate(); 
+    mutate();
   };
 
   const handleDeleteSuccess = () => {
-    mutate(); 
+    mutate();
+  };
+
+  const handleAddSuccess = () => {
+    setIsAddDialogOpen(false);
+    mutate();
   };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-center text-2xl font-bold">Snacks</h1> {}
-      {isLoading ? ( 
-        <p className="text-center text-gray-600">Carregando snacks...</p>
-      ) : (
+    <div className="space-y-8 p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-center text-2xl font-bold">Bebidas Quentes</h1> {}
+        <div className="flex items-center gap-4"> {}
+          {}
+          <Link href="/" passHref>
+            <Button className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white hover:bg-gray-700 shadow-md">
+              <Home className="h-4 w-4" /> {}
+              Home
+            </Button>
+          </Link>
 
+          {}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar Bebida
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="text-white">
+              <DialogHeader>
+                <DialogTitle>Adicionar Nova Bebida Quente</DialogTitle> {}
+                <DialogDescription>
+                  Preencha os detalhes para adicionar uma nova bebida quente ao cardápio.
+                </DialogDescription>
+              </DialogHeader>
+              <AddItemForm
+                onAddSuccess={handleAddSuccess}
+                onCancel={() => setIsAddDialogOpen(false)}
+                apiEndpoint="/api/mock/hot_drinks"
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <p className="text-center text-gray-600">Carregando bebidas quentes...</p>
+      ) : (
         data && data.length > 0 ? (
           <CustomTable
-
             Options={({ rowData }) => (
-              <ItemOptions
-                snackId={rowData.id} 
+              <ItemOptionsHotDrinks 
+                itemId={rowData.id}
                 onUpdateSuccess={handleUpdateSuccess}
                 onDeleteSuccess={handleDeleteSuccess}
               />
             )}
             headers={headers}
             rows={
-
               data.map((val) => {
                 return {
                   id: val.id,
-                  Nome: val.title,
-                  Descrição: val.content,
+                  "Nome": val.title,
+                  "Tipo": val.content,
                   Preço: `R$${Number(val.amount).toFixed(2).replace(".", ",")}`,
                 };
               })
             }
           />
         ) : (
-          <p className="text-center text-gray-600">Nenhum snack encontrado.</p> 
+          <p className="text-center text-gray-600">Nenhuma bebida quente encontrada.</p>
         )
       )}
     </div>
@@ -75,28 +114,28 @@ export default function Home() {
 }
 
 
-function ItemOptions({ snackId, onUpdateSuccess, onDeleteSuccess }) { 
+function ItemOptionsHotDrinks({ itemId, onUpdateSuccess, onDeleteSuccess }) { 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [productData, setProductData] = useState({
     title: '',
     content: '',
     amount: '',
     image: '',
-    category: 3,
+    category: 4, 
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
 
   useEffect(() => {
-    if (isEditDialogOpen && snackId) { 
+    if (isEditDialogOpen && itemId) {
       const fetchProduct = async () => {
         setLoading(true);
         setError(null);
         try {
-          const response = await fetch(`/api/mock/snacks?id=${snackId}`);
+          const response = await fetch(`/api/mock/hot_drinks?id=${itemId}`); 
           if (!response.ok) {
-            throw new Error(`Erro ao buscar dados do produto: ${response.statusText}`);
+            throw new Error(`Erro ao buscar dados da bebida: ${response.statusText}`);
           }
           const data = await response.json();
           setProductData({
@@ -104,7 +143,7 @@ function ItemOptions({ snackId, onUpdateSuccess, onDeleteSuccess }) {
             content: data.content || '',
             amount: data.amount || '',
             image: data.image ? data.image.split('/').pop() : '',
-            category: data.category_id || 3, 
+            category: data.category_id || 4,
           });
         } catch (err) {
           console.error("Erro ao carregar dados para edição:", err);
@@ -115,7 +154,8 @@ function ItemOptions({ snackId, onUpdateSuccess, onDeleteSuccess }) {
       };
       fetchProduct();
     }
-  }, [isEditDialogOpen, snackId]); 
+  }, [isEditDialogOpen, itemId]);
+
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -125,11 +165,12 @@ function ItemOptions({ snackId, onUpdateSuccess, onDeleteSuccess }) {
     }));
   };
 
+
   const handleUpdate = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/mock/snacks?id=${snackId}`, { 
+      const response = await fetch(`/api/mock/hot_drinks?id=${itemId}`, { 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -139,45 +180,46 @@ function ItemOptions({ snackId, onUpdateSuccess, onDeleteSuccess }) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Erro ao atualizar produto: ${response.statusText}`);
+        throw new Error(errorData.message || `Erro ao atualizar bebida: ${response.statusText}`);
       }
 
       const updatedItem = await response.json();
-      console.log('Item atualizado com sucesso:', updatedItem);
+      console.log('Bebida atualizada com sucesso:', updatedItem);
       onUpdateSuccess && onUpdateSuccess(updatedItem);
       setIsEditDialogOpen(false);
     } catch (err) {
-      console.error('Erro ao atualizar item:', err);
-      setError(err.message || 'Falha ao atualizar o item.');
+      console.error('Erro ao atualizar bebida:', err);
+      setError(err.message || 'Falha ao atualizar a bebida.');
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleDelete = async () => {
-    if (!confirm("Tem certeza que deseja excluir este item?")) {
+    if (!confirm("Tem certeza que deseja excluir esta bebida?")) {
       return;
     }
 
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/mock/snacks?id=${snackId}`, { 
+      const response = await fetch(`/api/mock/hot_drinks?id=${itemId}`, { 
         method: 'DELETE',
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Erro ao excluir produto: ${response.statusText}`);
+        throw new Error(errorData.message || `Erro ao excluir bebida: ${response.statusText}`);
       }
 
       const deletedInfo = await response.json();
-      console.log('Item excluído com sucesso:', deletedInfo);
-      onDeleteSuccess && onDeleteSuccess(snackId); 
+      console.log('Bebida excluída com sucesso:', deletedInfo);
+      onDeleteSuccess && onDeleteSuccess(itemId);
       setIsEditDialogOpen(false);
     } catch (err) {
-      console.error('Erro ao excluir item:', err);
-      setError(err.message || 'Falha ao excluir o item.');
+      console.error('Erro ao excluir bebida:', err);
+      setError(err.message || 'Falha ao excluir a bebida.');
     } finally {
       setLoading(false);
     }
@@ -189,9 +231,9 @@ function ItemOptions({ snackId, onUpdateSuccess, onDeleteSuccess }) {
       <DialogTrigger asChild>
         <MoreVertical className="!h-6 !w-6 cursor-pointer" />
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="text-white">
         <DialogHeader>
-          <DialogTitle>Atualizar Item</DialogTitle>
+          <DialogTitle>Atualizar Bebida Quente</DialogTitle> {}
           <DialogDescription>
             Faça as alterações necessárias, e clique em salvar.
           </DialogDescription>
@@ -203,46 +245,46 @@ function ItemOptions({ snackId, onUpdateSuccess, onDeleteSuccess }) {
         {!loading && (
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">Título</Label>
+              <Label htmlFor="title" className="text-right text-gray-800">Nome</Label>
               <Input
                 id="title"
                 value={productData.title}
                 onChange={handleInputChange}
-                className="col-span-3"
+                className="col-span-3 text-gray-800 bg-white border border-gray-300"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="content" className="text-right">Descrição</Label>
+              <Label htmlFor="content" className="text-right text-gray-800">Tipo</Label>
               <Input
                 id="content"
                 value={productData.content}
                 onChange={handleInputChange}
-                className="col-span-3"
+                className="col-span-3 text-gray-800 bg-white border border-gray-300"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="amount" className="text-right">Preço</Label>
+              <Label htmlFor="amount" className="text-right text-gray-800">Preço</Label>
               <Input
                 id="amount"
                 type="number"
                 value={productData.amount}
                 onChange={handleInputChange}
-                className="col-span-3"
+                className="col-span-3 text-gray-800 bg-white border border-gray-300"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="image" className="text-right">Imagem (URL)</Label>
+              <Label htmlFor="image" className="text-right text-gray-800">Imagem (URL)</Label>
               <Input
                 id="image"
                 value={productData.image}
                 onChange={handleInputChange}
-                className="col-span-3"
+                className="col-span-3 text-gray-800 bg-white border border-gray-300"
               />
             </div>
           </div>
         )}
 
-        <DialogFooter className="!justify-center"> {}
+        <DialogFooter className="!justify-center">
           <Button variant="destructive" onClick={handleDelete} disabled={loading}>
             <Trash2 className="!h-4 !w-4 mr-2" />
             Excluir

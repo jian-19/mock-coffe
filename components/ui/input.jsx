@@ -1,11 +1,8 @@
-// No seu arquivo: seu-projeto/components/ui/input.jsx
-
-"use client"; // Necessário se você estiver usando Next.js App Router
+"use client"; 
 
 import * as React from "react";
-import { cn } from "@/lib/utils"; // Certifique-se que o caminho está correto
+import { cn } from "@/lib/utils";
 
-// Não há "interface" em JavaScript, então definimos as props diretamente
 const Input = React.forwardRef(
   ({ className, type, ...props }, ref) => {
     return (

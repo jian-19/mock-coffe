@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "migrate": "node-pg-migrate"
+    "migrate": "node-pg-migrate",
+    "test": "vitest"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
@@ -37,5 +38,9 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.11",
     "tw-animate-css": "^1.3.5"
+  },
+  "devDependencies": {
+    "node-mocks-http": "^1.17.2",
+    "vitest": "^3.2.4"
   }
 }

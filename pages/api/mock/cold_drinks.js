@@ -1,10 +1,18 @@
-import products from "@/models/products";
 /**
  * @swagger
  * /api/mock/cold_drinks:
  *  get:
+ *    tags:
+ *      - Bebidas Geladas
  *    summary: Retorna uma lista de bebidas geladas.
- *    description: Este endpoint busca e retorna uma lista de todos as bebidas geladas disponíveis, incluindo seus detalhes.
+ *    description: Este endpoint busca e retorna uma lista de todas as bebidas geladas disponíveis, incluindo seus detalhes.
+ *    parameters:
+ *      - in: query
+ *        name: id
+ *        schema:
+ *          type: string
+ *        description: O ID da bebida gelada a ser retornada (filtro opcional).
+ *        required: false
  *    responses:
  *      200:
  *        description: Lista de bebidas geladas obtida com sucesso.
@@ -15,155 +23,217 @@ import products from "@/models/products";
  *              items:
  *                type: object
  *                properties:
+ *                  id:
+ *                    type: integer
+ *                    format: int64
+ *                    description: ID único da bebida. Gerado automaticamente pelo sistema.
+ *                    readOnly: true
+ *                    example: 123
  *                  title:
  *                    type: string
- *                    description: Título ou nome da bebida gelada.
- *                    example: "Chá Gelado"
+ *                    description: Título ou nome da bebida.
+ *                    example: "Suco de Laranja"
  *                  content:
  *                    type: string
- *                    description: Descrição da bebida gelada.
- *                    example: "Chá preto gelado com limão."
+ *                    description: Descrição da bebida.
+ *                    example: "Suco natural de laranja gelado."
  *                  amount:
  *                    type: number
  *                    format: float
- *                    description: Preço da bebida gelada.
+ *                    description: Preço da bebida.
  *                    example: 6.5
  *                  image:
  *                    type: string
  *                    format: url
- *                    description: URL da imagem da bebida gelada.
- *                    example: "http://localhost:3000/cold_coffees/cha gelado.png"
+ *                    description: URL da imagem da bebida.
+ *                    example: "http://localhost:3000/cold_coffees/suco%20de%20laranja.png"
+ *
+ *  post:
+ *    tags:
+ *      - Bebidas Geladas
+ *    summary: Cadastra uma nova bebida gelada.
+ *    description: Este endpoint permite adicionar uma nova bebida gelada ao sistema.
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            required:
+ *              - title
+ *              - content
+ *              - amount
+ *              - image
+ *            properties:
+ *              title:
+ *                type: string
+ *                example: "Chá Gelado"
+ *              content:
+ *                type: string
+ *                example: "Chá preto com limão e gelo."
+ *              amount:
+ *                type: number
+ *                format: float
+ *                example: 5.5
+ *              image:
+ *                type: string
+ *                format: url
+ *                example: "http://localhost:3000/cold_coffees/cha%20gelado.png"
+ *    responses:
+ *      201:
+ *        description: Bebida gelada cadastrada com sucesso.
+ *      400:
+ *        description: Requisição inválida. Verifique os campos obrigatórios.
+ *
+ *  put:
+ *    tags:
+ *      - Bebidas Geladas
+ *    summary: Atualiza uma bebida gelada existente.
+ *    description: Este endpoint atualiza os dados de uma bebida gelada com base no ID fornecido.
+ *    parameters:
+ *      - in: query
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: ID da bebida gelada a ser atualizada.
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              title:
+ *                type: string
+ *                example: "Água com Gás"
+ *              content:
+ *                type: string
+ *                example: "Água mineral gaseificada gelada."
+ *              amount:
+ *                type: number
+ *                format: float
+ *                example: 4.0
+ *              image:
+ *                type: string
+ *                format: url
+ *                example: "http://localhost:3000/cold_coffees/agua%20com%20gas.png"
+ *    responses:
+ *      200:
+ *        description: Bebida gelada atualizada com sucesso.
+ *      404:
+ *        description: Bebida não encontrada.
+ *      400:
+ *        description: Requisição inválida.
+ *
+ *  delete:
+ *    tags:
+ *      - Bebidas Geladas
+ *    summary: Remove uma bebida gelada pelo ID.
+ *    description: Este endpoint remove uma bebida gelada específica com base no ID fornecido.
+ *    parameters:
+ *      - in: query
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: ID da bebida gelada a ser removida.
+ *    responses:
+ *      200:
+ *        description: Bebida gelada removida com sucesso.
+ *      404:
+ *        description: Bebida não encontrada.
  */
+let mockColdDrinks = [
+  { id: "1", title: "Água com Gás", content: "Água refrescante com gás", amount: 5.00, image: "", category_id: 5 },
+  { id: "2", title: "Refrigerante de Limão", content: "Refrigerante cítrico", amount: 7.00, image: "", category_id: 5 },
+];
+let nextId = 3; 
 export default async function handler(req, res) {
-  const httpOrHttps = process.env.NODE_ENV === "production" ? "https" : "http";
-  const baseUrl = req.headers.host;
-
-
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']); 
-    res.status(200).end(); 
-    return; 
-  }
-
-  if (req.method === 'GET') {
-    try {
-      const { id } = req.query; 
-
+  switch (req.method) {
+    case 'GET':
+      const { id } = req.query;
       if (id) {
-        
-        const product = await products.getProductById(id); 
+        const item = mockColdDrinks.find(i => i.id === id);
+        if (item) {
+          return res.status(200).json(item);
+        } else {
+          return res.status(404).json({ message: 'Bebida gelada não encontrada' });
+        }
+      }
+      return res.status(200).json(mockColdDrinks);
 
-        if (!product) {
-          
-          return res.status(404).json({ message: 'Bebida gelada não encontrada.' });
+    case 'POST':
+      try {
+        const { title, content, amount, image, category_id } = req.body;
+
+        if (!title || !amount) {
+          return res.status(400).json({ message: 'Título e Preço são obrigatórios.' });
         }
 
-        
-        const productWithFormattedImage = {
-          ...product,
-          image: `${httpOrHttps}://${baseUrl}${product.image}`,
+        const newItem = {
+          id: String(nextId++),
+          title,
+          content: content || '',
+          amount: parseFloat(amount),
+          image: image || '',
+          category_id: category_id || 5, // Categoria padrão para bebidas geladas
         };
-        return res.status(200).json(productWithFormattedImage);
+        mockColdDrinks.push(newItem);
 
-      } else {
-        
-        const coldDrinks = await products.getAllProductsByCategory(2); 
+        return res.status(201).json(newItem);
 
-        res.status(200).json(
-          coldDrinks.map((product) => {
-            
-            return {
-              ...product,
-              image: `${httpOrHttps}://${baseUrl}${product.image}`
-            };
-          })
-        );
-      }
-    } catch (error) {
-      console.error('Erro ao buscar bebidas geladas:', error);
-      res.status(500).json({ message: 'Erro interno do servidor ao buscar as bebidas geladas.' });
-    }
-
-  } else if (req.method === 'POST') {
-    try {
-      const newProductData = req.body; 
-
-      const requiredFields = ['title', 'content', 'amount', 'image'];
-      const missingFields = requiredFields.filter(field => !newProductData[field]);
-
-      if (missingFields.length > 0) {
-        return res.status(400).json({
-          message: `Dados da bebida gelada incompletos: ${missingFields.join(', ')} são obrigatórios.`
-        });
+      } catch (error) {
+        console.error('Erro ao adicionar bebida gelada:', error);
+        return res.status(500).json({ message: 'Erro interno do servidor ao adicionar bebida gelada.', error: error.message });
       }
 
-      const productToCreate = {
-        ...newProductData,
-        category: 2,
-      };
+    case 'PUT':
+      try {
+        const { id } = req.query;
+        const { title, content, amount, image, category_id } = req.body;
 
-      const createdProduct = await products.createProduct(productToCreate); 
+        let itemIndex = mockColdDrinks.findIndex(i => i.id === id);
 
+        if (itemIndex === -1) {
+          return res.status(404).json({ message: 'Bebida gelada não encontrada para atualização.' });
+        }
 
-      const productWithFormattedImage = {
-        ...createdProduct,
-        image: `${httpOrHttps}://${baseUrl}${createdProduct.image}`,
-      };
+        mockColdDrinks[itemIndex] = {
+          ...mockColdDrinks[itemIndex],
+          title: title || mockColdDrinks[itemIndex].title,
+          content: content || mockColdDrinks[itemIndex].content,
+          amount: parseFloat(amount) || mockColdDrinks[itemIndex].amount,
+          image: image || mockColdDrinks[itemIndex].image,
+          category_id: category_id || mockColdDrinks[itemIndex].category_id,
+        };
 
-      res.status(201).json(productWithFormattedImage); 
+        return res.status(200).json(mockColdDrinks[itemIndex]);
 
-    } catch (error) {
-      console.error('Erro ao criar bebida gelada:', error);
-      res.status(500).json({ message: 'Erro interno do servidor ao criar a bebida gelada.' });
-    }
-
-  } else if (req.method === 'PUT') {
-    try {
-      const { id } = req.query; 
-      const updateData = req.body; 
-      if (!id) {
-        return res.status(400).json({ message: 'ID da bebida gelada é obrigatório para atualização.' });
+      } catch (error) {
+        console.error('Erro ao atualizar bebida gelada:', error);
+        return res.status(500).json({ message: 'Erro interno do servidor ao atualizar bebida gelada.', error: error.message });
       }
 
-      const updatedProduct = await products.updateProduct(id, updateData); 
-      if (!updatedProduct) {
-        return res.status(404).json({ message: 'Bebida gelada não encontrada para atualização.' });
+    case 'DELETE':
+      try {
+        const { id } = req.query;
+        const initialLength = mockColdDrinks.length;
+        mockColdDrinks = mockColdDrinks.filter(i => i.id !== id);
+
+        if (mockColdDrinks.length === initialLength) {
+          return res.status(404).json({ message: 'Bebida gelada não encontrada para exclusão.' });
+        }
+
+        return res.status(200).json({ message: 'Bebida gelada excluída com sucesso.' });
+
+      } catch (error) {
+        console.error('Erro ao excluir bebida gelada:', error);
+        return res.status(500).json({ message: 'Erro interno do servidor ao excluir bebida gelada.', error: error.message });
       }
 
-      const productWithFormattedImage = {
-        ...updatedProduct,
-        image: `${httpOrHttps}://${baseUrl}${updatedProduct.image}`,
-      };
-
-      res.status(200).json(productWithFormattedImage); 
-
-    } catch (error) {
-      console.error('Erro ao atualizar bebida gelada:', error);
-      res.status(500).json({ message: 'Erro interno do servidor ao atualizar a bebida gelada.' });
-    }
-
-  } else if (req.method === 'DELETE') {
-    try {
-      const { id } = req.query; 
-
-      if (!id) {
-        return res.status(400).json({ message: 'ID da bebida gelada é obrigatório para exclusão.' });
-      }
-
-      const deletedProduct = await products.deleteProduct(id); 
-
-      if (!deletedProduct) {
-        return res.status(404).json({ message: 'Bebida gelada não encontrada para exclusão.' });
-      }
-
-      res.status(200).json({ message: 'Bebida gelada excluída com sucesso.', id: deletedProduct.id }); 
-    } catch (error) {
-      console.error('Erro ao excluir bebida gelada:', error);
-      res.status(500).json({ message: 'Erro interno do servidor ao excluir a bebida gelada.' });
-    }
-
-  } else {
-    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    default:
+      res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+      return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
